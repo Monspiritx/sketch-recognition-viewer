@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<title>Qualitative Results Viewer — Top-5</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    font-family: 'Segoe UI', Tahoma, sans-serif;
+    background: #f4f6f8;
+    margin: 0;
+    padding: 24px;
+    color: #222;
+  }
+  h1 { text-align: center; margin-bottom: 4px; }
+  .subtitle { text-align: center; color: #666; margin-bottom: 20px; }
+ 
+  .controls {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+  .controls input, .controls select, .controls button {
+    padding: 8px 12px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    font-size: 14px;
+  }
+  .controls button {
+    background: #2c3e50;
+    color: #fff;
+    border: none;
+    cursor: pointer;
+  }
+  .controls button:hover { background: #34495e; }
+  .controls button.active { background: #3498db; }
+ 
+  .model-tabs {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    margin-bottom: 8px;
+    flex-wrap: wrap;
+    max-width: 1000px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .model-tabs button {
+    padding: 8px 14px;
+    border-radius: 8px;
+    border: none;
+    background: #dfe6e9;
+    color: #333;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 12px;
+  }
+  .model-tabs button .group-tag {
+    display: block;
+    font-weight: normal;
+    font-size: 10px;
+    color: #888;
+  }
+  .model-tabs button.active {
+    background: #2c3e50;
+    color: #fff;
+  }
+  .model-tabs button.active .group-tag { color: #bbb; }
+ 
+  #count { text-align: center; color: #666; margin-bottom: 16px; font-size: 13px; }
+ 
+  .query-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+    padding: 14px 18px;
+    margin-bottom: 12px;
+  }
+  .query-row.wrong-row {
+    background: #fff2f0;
+    border: 1px solid #ffccc7;
+  }
+ 
+  .sketch-block { text-align: center; flex-shrink: 0; }
+  .sketch-block img {
+    width: 110px; height: 110px; object-fit: cover;
+    border-radius: 8px; border: 2px solid #888;
+  }
+  .sketch-block .label { font-size: 11px; color: #666; margin-top: 4px; font-weight: bold; }
+ 
+  .arrow-sep { font-size: 22px; color: #3498db; flex-shrink: 0; }
+ 
+  .candidates { display: flex; gap: 10px; flex-wrap: nowrap; overflow-x: auto; }
+  .candidate { text-align: center; flex-shrink: 0; }
+  .candidate img {
+    width: 90px; height: 90px; object-fit: cover;
+    border-radius: 6px; border: 2px solid #ddd;
+  }
+  .candidate .rank-badge {
+    font-size: 10px; color: #999; margin-bottom: 2px;
+  }
+  .candidate .score {
+    font-size: 13px; font-weight: bold; margin-top: 3px; color: #333;
+  }
+  .candidate .score.correct {
+    color: #27ae60;
+    font-size: 15px;
+  }
+  .candidate .cand-id { font-size: 10px; color: #aaa; }
+ 
+  .status-badge {
+    flex-shrink: 0;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: bold;
+    color: #fff;
+    margin-left: auto;
+  }
+  .status-badge.correct { background: #27ae60; }
+  .status-badge.wrong { background: #e74c3c; }
+</style>
+</head>
+<body>
+ 
+<h1>Qualitative Results Viewer — Top-5</h1>
+<div class="subtitle">Sketch &rarr; Top-5 Candidate Photos (ตัวเลขสีเขียว = คำตอบที่ถูกต้องจริง)</div>
+ 
+<div class="model-tabs" id="modelTabs"></div>
+ 
+<div class="controls">
+  <input type="text" id="searchBox" placeholder="ค้นหา query id...">
+  <select id="sortField">
+    <option value="score">Sort: Top-1 Score</option>
+  </select>
+  <button id="sortDescBtn" class="active">สูง &rarr; ต่ำ</button>
+  <button id="sortAscBtn">ต่ำ &rarr; สูง</button>
+  <select id="filterSelect">
+    <option value="all">แสดงทั้งหมด</option>
+    <option value="correct">เฉพาะที่ถูก (Top-1)</option>
+    <option value="wrong">เฉพาะที่ผิด (Top-1)</option>
+  </select>
+</div>
+ 
+<div id="count"></div>
+<div id="rows"></div>
+ 
+<script src="data.js"></script>
+<script>
+  let currentModelIdx = 0;
+  let sortDir = 'desc';
+  let searchTerm = '';
+  let filterMode = 'all';
+ 
+  function renderTabs() {
+    const tabs = document.getElementById('modelTabs');
+    tabs.innerHTML = REPORT_DATA.models.map((m, i) => `
+      <button class="${i === currentModelIdx ? 'active' : ''}" data-idx="${i}">
+        ${m.model_id}: ${m.model_name}<br>
+        <span class="group-tag">[${m.group}] Top-1 ${m.top1_accuracy}%</span>
+      </button>
+    `).join('');
+    tabs.querySelectorAll('button').forEach(btn => {
+      btn.addEventListener('click', () => {
+        currentModelIdx = parseInt(btn.dataset.idx);
+        renderTabs();
+        render();
+      });
+    });
+  }
+ 
+  function render() {
+    const model = REPORT_DATA.models[currentModelIdx];
+    const rowsEl = document.getElementById('rows');
+    const countEl = document.getElementById('count');
+ 
+    let records = model.records.filter(r =>
+      r.query_id.toLowerCase().includes(searchTerm)
+    );
+ 
+    if (filterMode === 'correct') records = records.filter(r => r.top1_correct);
+    if (filterMode === 'wrong')   records = records.filter(r => !r.top1_correct);
+ 
+    records.sort((a, b) => {
+      const sa = a.candidates[0].score, sb = b.candidates[0].score;
+      return sortDir === 'desc' ? sb - sa : sa - sb;
+    });
+ 
+    countEl.textContent = `แสดง ${records.length} จาก ${model.records.length} query`;
+ 
+    rowsEl.innerHTML = records.map(r => `
+      <div class="query-row ${r.top1_correct ? '' : 'wrong-row'}">
+        <div class="sketch-block">
+          <img src="${r.query_img}">
+          <div class="label">${r.query_id}</div>
+        </div>
+        <div class="arrow-sep">&rarr;</div>
+        <div class="candidates">
+          ${r.candidates.map(c => `
+            <div class="candidate">
+              <div class="rank-badge">#${c.rank}</div>
+              <img src="${c.img}">
+              <div class="score ${c.is_correct ? 'correct' : ''}">${c.score.toFixed(3)}</div>
+              <div class="cand-id">${c.id}</div>
+            </div>
+          `).join('')}
+        </div>
+        <div class="status-badge ${r.top1_correct ? 'correct' : 'wrong'}">
+          ${r.top1_correct ? '✓ ถูก' : '✗ ผิด'}
+        </div>
+      </div>
+    `).join('');
+  }
+ 
+  document.getElementById('searchBox').addEventListener('input', (e) => {
+    searchTerm = e.target.value.toLowerCase();
+    render();
+  });
+  document.getElementById('sortDescBtn').addEventListener('click', () => {
+    sortDir = 'desc';
+    document.getElementById('sortDescBtn').classList.add('active');
+    document.getElementById('sortAscBtn').classList.remove('active');
+    render();
+  });
+  document.getElementById('sortAscBtn').addEventListener('click', () => {
+    sortDir = 'asc';
+    document.getElementById('sortAscBtn').classList.add('active');
+    document.getElementById('sortDescBtn').classList.remove('active');
+    render();
+  });
+  document.getElementById('filterSelect').addEventListener('change', (e) => {
+    filterMode = e.target.value;
+    render();
+  });
+ 
+  renderTabs();
+  render();
+</script>
+ 
+</body>
+</html>

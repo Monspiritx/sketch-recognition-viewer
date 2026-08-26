@@ -7,13 +7,13 @@
   * { box-sizing: border-box; }
   body {
     font-family: 'Segoe UI', Tahoma, sans-serif;
-    background: #f4f6f8;
+    background: #0f1115;
     margin: 0;
     padding: 24px;
-    color: #222;
+    color: #e5e7eb;
   }
-  h1 { text-align: center; margin-bottom: 4px; }
-  .subtitle { text-align: center; color: #666; margin-bottom: 20px; }
+  h1 { text-align: center; margin-bottom: 4px; color: #f4f4f5; letter-spacing: 0.3px; }
+  .subtitle { text-align: center; color: #9ca3af; margin-bottom: 20px; }
  
   .controls {
     display: flex;
@@ -24,18 +24,26 @@
   }
   .controls input, .controls select, .controls button {
     padding: 8px 12px;
-    border-radius: 6px;
-    border: 1px solid #ccc;
+    border-radius: 8px;
+    border: 1px solid #2a2e37;
+    background: #181b21;
+    color: #e5e7eb;
     font-size: 14px;
   }
+  .controls input::placeholder { color: #6b7280; }
   .controls button {
-    background: #2c3e50;
-    color: #fff;
-    border: none;
+    background: #1c2028;
+    color: #d1d5db;
+    border: 1px solid #2a2e37;
     cursor: pointer;
+    font-weight: 600;
   }
-  .controls button:hover { background: #34495e; }
-  .controls button.active { background: #3498db; }
+  .controls button:hover { background: #232833; }
+  .controls button.active {
+    background: #6366f1;
+    border-color: #6366f1;
+    color: #fff;
+  }
  
   .model-tabs {
     display: flex;
@@ -50,9 +58,9 @@
   .model-tabs button {
     padding: 8px 14px;
     border-radius: 8px;
-    border: none;
-    background: #dfe6e9;
-    color: #333;
+    border: 1px solid #2a2e37;
+    background: #181b21;
+    color: #d1d5db;
     cursor: pointer;
     font-weight: bold;
     font-size: 12px;
@@ -61,57 +69,58 @@
     display: block;
     font-weight: normal;
     font-size: 10px;
-    color: #888;
+    color: #6b7280;
   }
   .model-tabs button.active {
-    background: #2c3e50;
+    background: #6366f1;
+    border-color: #6366f1;
     color: #fff;
   }
-  .model-tabs button.active .group-tag { color: #bbb; }
+  .model-tabs button.active .group-tag { color: #d8d8ff; }
  
-  #count { text-align: center; color: #666; margin-bottom: 16px; font-size: 13px; }
+  #count { text-align: center; color: #9ca3af; margin-bottom: 16px; font-size: 13px; }
  
   .query-row {
     display: flex;
     align-items: center;
     gap: 14px;
-    background: #fff;
-    border-radius: 10px;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+    background: #181b21;
+    border: 1px solid #23262e;
+    border-radius: 12px;
     padding: 14px 18px;
     margin-bottom: 12px;
   }
   .query-row.wrong-row {
-    background: #fff2f0;
-    border: 1px solid #ffccc7;
+    background: #1f1518;
+    border: 1px solid #4c2430;
   }
  
   .sketch-block { text-align: center; flex-shrink: 0; }
   .sketch-block img {
     width: 110px; height: 110px; object-fit: cover;
-    border-radius: 8px; border: 2px solid #888;
+    border-radius: 8px; border: 2px solid #3a3f4a;
   }
-  .sketch-block .label { font-size: 11px; color: #666; margin-top: 4px; font-weight: bold; }
+  .sketch-block .label { font-size: 11px; color: #9ca3af; margin-top: 4px; font-weight: bold; }
  
-  .arrow-sep { font-size: 22px; color: #3498db; flex-shrink: 0; }
+  .arrow-sep { font-size: 22px; color: #818cf8; flex-shrink: 0; }
  
   .candidates { display: flex; gap: 10px; flex-wrap: nowrap; overflow-x: auto; }
   .candidate { text-align: center; flex-shrink: 0; }
   .candidate img {
     width: 90px; height: 90px; object-fit: cover;
-    border-radius: 6px; border: 2px solid #ddd;
+    border-radius: 6px; border: 2px solid #2a2e37;
   }
   .candidate .rank-badge {
-    font-size: 10px; color: #999; margin-bottom: 2px;
+    font-size: 10px; color: #6b7280; margin-bottom: 2px;
   }
   .candidate .score {
-    font-size: 13px; font-weight: bold; margin-top: 3px; color: #333;
+    font-size: 13px; font-weight: bold; margin-top: 3px; color: #d1d5db;
   }
   .candidate .score.correct {
-    color: #27ae60;
+    color: #34d399;
     font-size: 15px;
   }
-  .candidate .cand-id { font-size: 10px; color: #aaa; }
+  .candidate .cand-id { font-size: 10px; color: #6b7280; }
  
   .status-badge {
     flex-shrink: 0;
@@ -122,8 +131,8 @@
     color: #fff;
     margin-left: auto;
   }
-  .status-badge.correct { background: #27ae60; }
-  .status-badge.wrong { background: #e74c3c; }
+  .status-badge.correct { background: #059669; }
+  .status-badge.wrong { background: #dc2626; }
 </style>
 </head>
 <body>

@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<title>Activation Decomposition — Qualitative Analysis</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    font-family: 'Segoe UI', Tahoma, sans-serif;
+    background: #0f1115;
+    margin: 0;
+    padding: 24px;
+    color: #e5e7eb;
+  }
+  h1 { text-align: center; margin-bottom: 4px; color: #f4f4f5; }
+  .subtitle { text-align: center; color: #9ca3af; margin-bottom: 8px; }
+  .back-link { text-align: center; margin-bottom: 24px; }
+  .back-link a {
+    color: #818cf8; text-decoration: none; font-size: 14px;
+  }
+  .back-link a:hover { text-decoration: underline; }
+ 
+  .controls {
+    display: flex; justify-content: center; gap: 12px; margin-bottom: 24px; flex-wrap: wrap;
+  }
+  .controls select {
+    padding: 8px 12px; border-radius: 8px; border: 1px solid #2a2e37;
+    background: #181b21; color: #e5e7eb; font-size: 14px;
+  }
+ 
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 20px;
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+  .card {
+    background: #181b21;
+    border: 1px solid #23262e;
+    border-radius: 12px;
+    padding: 14px;
+  }
+  .card img {
+    width: 100%;
+    border-radius: 8px;
+    display: block;
+    cursor: zoom-in;
+  }
+  .card .label {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 10px;
+    font-size: 13px;
+  }
+  .card .qid { font-weight: bold; color: #f4f4f5; }
+  .badge {
+    padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: bold; color: #fff;
+  }
+  .badge.hard { background: #dc2626; }
+  .badge.easy { background: #059669; }
+  .badge.mixed { background: #d97706; }
+ 
+  #count { text-align: center; color: #9ca3af; margin-bottom: 16px; font-size: 13px; }
+ 
+  /* lightbox */
+  #lightbox {
+    display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9);
+    z-index: 100; align-items: center; justify-content: center; cursor: zoom-out;
+  }
+  #lightbox img { max-width: 95%; max-height: 95%; border-radius: 8px; }
+</style>
+</head>
+<body>
+ 
+<h1>Activation Decomposition — Qualitative Analysis</h1>
+<div class="subtitle">P04, P06 (zero-shot) vs S18, S26 (fine-tuned) — 20 query (10 ยากสุด + 10 ง่ายสุด)</div>
+<div class="back-link"><a href="index.html">&larr; กลับไปหน้า Top-5 Ranking Viewer</a></div>
+ 
+<div class="controls">
+  <select id="filterSelect">
+    <option value="all">แสดงทั้งหมด</option>
+    <option value="hard">เฉพาะกลุ่มยาก (0-2/4 โมเดลถูก)</option>
+    <option value="easy">เฉพาะกลุ่มง่าย (3-4/4 โมเดลถูก)</option>
+  </select>
+</div>
+ 
+<div id="count"></div>
+<div class="grid" id="grid"></div>
+ 
+<div id="lightbox"><img id="lightboxImg" src=""></div>
+ 
+<script src="gradcam/gradcam_manifest.js"></script>
+<script>
+  function difficultyClass(diffStr) {
+    const n = parseInt(diffStr.split('/')[0]);
+    if (n <= 1) return 'hard';
+    if (n >= 3) return 'easy';
+    return 'mixed';
+  }
+ 
+  function render(filter) {
+    const grid = document.getElementById('grid');
+    const countEl = document.getElementById('count');
+ 
+    let items = GRADCAM_MANIFEST;
+    if (filter === 'hard') items = items.filter(m => parseInt(m.difficulty.split('/')[0]) <= 1);
+    if (filter === 'easy') items = items.filter(m => parseInt(m.difficulty.split('/')[0]) >= 3);
+ 
+    countEl.textContent = `แสดง ${items.length} จาก ${GRADCAM_MANIFEST.length} query`;
+ 
+    grid.innerHTML = items.map(m => `
+      <div class="card">
+        <img src="gradcam/${m.image}" onclick="openLightbox('gradcam/${m.image}')">
+        <div class="label">
+          <span class="qid">Query: ${m.query_id}</span>
+          <span class="badge ${difficultyClass(m.difficulty)}">โมเดลถูก ${m.difficulty}</span>
+        </div>
+      </div>
+    `).join('');
+  }
+ 
+  function openLightbox(src) {
+    document.getElementById('lightboxImg').src = src;
+    document.getElementById('lightbox').style.display = 'flex';
+  }
+  document.getElementById('lightbox').addEventListener('click', () => {
+    document.getElementById('lightbox').style.display = 'none';
+  });
+ 
+  document.getElementById('filterSelect').addEventListener('change', (e) => render(e.target.value));
+ 
+  render('all');
+</script>
+ 
+</body>
+</html>
